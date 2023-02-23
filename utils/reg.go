@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"regexp"
 )
 
@@ -25,5 +24,5 @@ func ExtractValueFromAuthenticityToken(token string) (string, string, error) {
 	}
 	//_gitlab_session=0b49f821f9a449be63a8f382a4611c83;
 	// 如果未匹配到任何值，则返回错误
-	return "", "", fmt.Errorf("无法从字符串 %q 中提取值", token)
+	return tokenN, sessionN, nil
 }

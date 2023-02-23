@@ -7,7 +7,7 @@ import (
 )
 
 func HttpGetWithCookie(url string) (string, error) {
-	//cookies := &http.Cookie{
+	//cookies := &http.Session{
 	//	Name:  "_gitlab_session",
 	//	Value: "9ba4e61db11da8b0160892609c3c77f9",
 	//}
@@ -39,10 +39,14 @@ func HttpGetWithCookie(url string) (string, error) {
 		return "", fmt.Errorf("读取 HTTP 响应失败：%v", err)
 	}
 
-	return resp.Header.Get("Set-Cookie") + string(body), nil
+	values := ""
+	for _, k := range resp.Header.Values("Set-Cookie") {
+		values += k
+	}
+	return values + string(body), nil
 }
 func HttpGet(url string) (string, error) {
-	//cookies := &http.Cookie{
+	//cookies := &http.Session{
 	//	Name:  "_gitlab_session",
 	//	Value: "9ba4e61db11da8b0160892609c3c77f9",
 	//}
@@ -80,7 +84,7 @@ func HttpGet(url string) (string, error) {
 func ExtractStringFromResponse(resp *http.Response) (string, error) {
 	// 读取响应的 Body
 	body, err := ioutil.ReadAll(resp.Body)
-	println(body)
+	//println(body)
 	if err != nil {
 		return "", fmt.Errorf("读取响应 Body 失败：%v", err)
 	}

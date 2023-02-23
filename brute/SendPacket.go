@@ -2,6 +2,7 @@ package brute
 
 import (
 	"fmt"
+	"gitlab_weakpassword/Data"
 	"gitlab_weakpassword/utils"
 	"io"
 	"net/http"
@@ -14,21 +15,24 @@ type loginResponse struct {
 	Token string `json:"token"`
 }
 
-func getTokenAndSession(Url string) (string, string, error) {
+func GetTokenAndSession(Url string) (Data.T_S, error) {
 	Url = strings.TrimSuffix(Url, "/")
 	body, err := utils.HttpGetWithCookie(Url + "/users/sign_in")
 
 	if err != nil {
-		return "", "", fmt.Errorf("can't connect gitlab")
+		return Data.T_S{}, fmt.Errorf("can't connect gitlab")
 	}
 	token, session, _ := utils.ExtractValueFromAuthenticityToken(body)
 	if err != nil {
-		return "", "", fmt.Errorf("no token")
+		return Data.T_S{}, fmt.Errorf("no token")
 	}
-	return token, session, nil
+	return Data.T_S{
+		Token:   token,
+		Session: session,
+	}, nil
 }
 
-func LoginToGitLab(Url, username, password string) (*http.Client, error) {
+func LoginToGitLab(Url, username, password string, TS Data.T_S) (*http.Client, error) {
 	// 创建一个HTTP客户端，并启用Cookie支持
 	jar, err := cookiejar.New(nil)
 	if err != nil {
@@ -37,9 +41,10 @@ func LoginToGitLab(Url, username, password string) (*http.Client, error) {
 	client := &http.Client{
 		Jar: jar,
 	}
-
+	//print("here")
 	//get token
-	token, session, err := getTokenAndSession(Url)
+	token := TS.Token
+	session := TS.Session
 	//println(session)
 	if err != nil {
 		return nil, err
@@ -60,11 +65,13 @@ func LoginToGitLab(Url, username, password string) (*http.Client, error) {
 	}
 	req.AddCookie(cookies)
 	if err != nil {
+		//print("here")
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	resp, err := client.Do(req)
 	if err != nil {
+		//print("here")
 		return nil, err
 	}
 	defer func(Body io.ReadCloser) {
@@ -73,9 +80,13 @@ func LoginToGitLab(Url, username, password string) (*http.Client, error) {
 
 		}
 	}(resp.Body)
+	//fmt.Println(strconv.Itoa(resp.StatusCode) + username + ":" + password)
+	// 否登录成功
+	tmpBody, _ := utils.ExtractStringFromResponse(resp)
+	//fmt.Println(tmpBody)
 
-	// 检查是否登录成功
-	if resp.StatusCode != http.StatusFound {
+	if !(strings.Contains(tmpBody, "qa-your-groups-link")) {
+
 		//response, err := utils.ExtractStringFromResponse(resp)
 		//if err != nil {
 		//	return nil, err
@@ -83,7 +94,7 @@ func LoginToGitLab(Url, username, password string) (*http.Client, error) {
 		//fmt.Println(response)
 		return nil, fmt.Errorf("login failed with status code %d", resp.StatusCode)
 	}
-
+	println("成功")
 	// 返回已登录的HTTP客户端
 	return client, nil
 }

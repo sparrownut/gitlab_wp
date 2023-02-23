@@ -27,12 +27,12 @@ func GetAuthorList(info Data.TargetInfo) ([]Data.Author, error) {
 		info.Host = strings.TrimSuffix(info.Host, "/")
 	}
 	fail := 0
-	for i := 1; i < 1000; i++ {
+	for i := 1; i < 10000; i++ {
 		if !hasVuln {
 			fmt.Println("haven't vuln")
 			os.Exit(0)
 		}
-		if fail >= 10 {
+		if fail >= 30 {
 			break
 		}
 		// 每个代码块都会增加一个同步等待组的计数器
@@ -81,9 +81,19 @@ func GetAuthorList(info Data.TargetInfo) ([]Data.Author, error) {
 		"{username}123456",
 		"{username}password",
 		"{username}admin",
+		"{username}",
+		"{username}{username}",
+		"123",
+		"1234",
+		"12345",
 		"123456",
+		"1234567",
+		"1234568",
+		"12345689",
+		"123456890",
 		"admin",
 		"admin123",
+		"password",
 	}
 	for _, user := range userList {
 		for _, keyUnreplace := range passwordList {

